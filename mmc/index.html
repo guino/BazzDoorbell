@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<script>
+function doGET(url, callback) {
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', url);
+	xhr.onload = function () { callback(xhr.response); };
+	xhr.send();
+}
+function isFolder(name) { return !name.match(/.+\.\w+/); }
+function completePathname(origin) { return origin[origin.length - 1] == '/' ? origin : origin + '/'; }
+
+function onFolderClick(a) {
+	var folderName = a.text;
+	if (folderName == '..') {
+		history.back();
+	} else {
+		var path = completePathname(location.pathname) + folderName;
+		history.pushState(null, null, path);
+		initPage(path);
+	}
+}
+function initPage(dirPath) {
+	doGET('/cgi-bin/main.cgi' + dirPath, function (res) {
+		document.body.innerHTML = '';
+		res.split('\n')
+		.filter(function (a) { return a != '' && a != '.'; })
+		.forEach(function (val, i) {
+			var div = document.createElement("div");
+			div.innerHTML = isFolder(val)
+				? "<a href='javascript:void(0)' onclick='onFolderClick(this)'>" + val + "</a>"
+				: "<a href='" + completePathname(dirPath) + val + "' target='_blank'>" + val + "</a>";
+			document.body.appendChild(div);
+		});
+	});
+}
+addEventListener('popstate', function(e) { initPage(location.pathname); });
+addEventListener('load', function() { initPage(location.pathname); });
+</script>
+</head>
+<body>
+</body>
+</html>
