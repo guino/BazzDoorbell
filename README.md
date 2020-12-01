@@ -1,7 +1,7 @@
 # Bazz Wi-Fi Doorbell/Camera Penetration test and customization
 ##### Introduction
-Following the work I did with another wifi camera (https://github.com/guino/WR301CH1KW) I decided to tacle another 'closed' camera I already had installed this year.
-This is a 'TUYA' camera wchich is known to be protective how their devices can be accessed and used (no 'PC' apps for instance), but I still bought the device for the price, features and the fact it works with the existing wiring/chime of the house.
+Following the work I did with another wifi camera (https://github.com/guino/WR301CH1KW) I decided to tackle another 'closed' camera I already had installed this year.
+This is a 'TUYA' camera which is known to be protective of how their devices can be accessed and used (no 'PC' apps for instance), but I still bought the device for the price, features and the fact it works with the existing wiring/chime of the house.
 The main goals as usual are to try to 'backup' the video contents of the device to my NAS (hopefully without using SD cards) and in this case access the camera feed from outer applications/PC.
 ##### Hardware
 The hardware model is listed as WFDBELL1 (website, etc) but I am pretty sure is just an OEM branding from the actual manufacturer (https://www.mearitek.com/products-bell-5s/) which I think also makes the doorbells for 'geeni' and 'merkury' (and probably others).
@@ -46,30 +46,30 @@ Requests/sec.: 0
 That was a waste... seems like the web server just doesn't respond when you provide a url it doesn't understand even with the valid user/password provided.
 I tried a few more options/filters without much success (only found /search ), however one of the threads above had a few working URLs that they found by dumping the firmware (/devices/deviceinfo, /sys/reboot, etc), but the one that caught my attention was /proc/<something>.
 I went ahead and was able to get /proc/cmdline, /proc/mounts and other locations but most importantly it could get me anywhere in the file system with a trick such as: /proc/self/root/etc/passw.
-That said: it seems it will only provide ascii printable characters (and close connection if if finds non-printable characters) and has a limit of 4096kb size (which is plenty for most text/script files).
+That said: it seems it will only provide ascii printable characters (and closes the connection if it finds non-printable characters) and has a limit of 4096kb size (which is plenty for most text/script files).
 I call that progress but nothing that allows me to do something to it.
 
-Without any remote options left I decided to open the device and try the UART route... so I opened the dvice and found out the SoC chip is in fact hiSilicon (as suspected):
+Without any remote options left I decided to open the device and try the UART route... so I opened the device and found out the SoC chip is in fact hiSilicon (as suspected):
 
-[![SoC](https://raw.githubusercontent.com/guino/BazzDoorbell/master/img/soc.jpg)]
+![SoC](https://raw.githubusercontent.com/guino/BazzDoorbell/master/img/soc.jpg)
 
 Also found/identified the flash chip (PDF is in the project):
 
-[![Flash](https://raw.githubusercontent.com/guino/BazzDoorbell/master/img/flash.jpg)]
+![Flash](https://raw.githubusercontent.com/guino/BazzDoorbell/master/img/flash.jpg)
 
 And for the next part: found and identified the UART pins, measured the level (3.3V) and probed potential GND/RX/TX pins:
 
-[![UART](https://raw.githubusercontent.com/guino/BazzDoorbell/master/img/uart.jpg)]
+![UART](https://raw.githubusercontent.com/guino/BazzDoorbell/master/img/uart.jpg)
 
-I was hoping that like many other cameras we'd have a standard uboot hopefully configured in a way I could interrupt/change settingg before loading kernel but was surprised:
+I was hoping that like many other cameras we'd have a standard uboot hopefully configured in a way I could interrupt/change settings before loading kernel but I was surprised:
 ```
 hisi-sdhci: 0
 PPS:Jul 22 2019 00:22:28 meari_c5    0 
 
 please input password::
 ```
-That doesn't look like u-boot, but anyway tried different passwords without success and after searching found someone also looking for a way around it (https://github.com/DanTLehman/orion_sc008ha).
-I did play a little bit with it and that ppsMmcTool.txt file (see https://github.com/DanTLehman/orion_sc008ha/issues/1) but figured it was time to get more serious... time to pull out the progremmer.
+That doesn't look like u-boot, but anyway I tried different passwords without success and after searching found someone also looking for a way around it (https://github.com/DanTLehman/orion_sc008ha).
+I did play a little bit with it and that ppsMmcTool.txt file (see https://github.com/DanTLehman/orion_sc008ha/issues/1) but figured it was time to get more serious... time to pull out the programmer.
 
 ![Programmer](https://images-na.ssl-images-amazon.com/images/I/41xB3WRorzL._AC_SY355_.jpg)
 
@@ -214,8 +214,8 @@ DECIMAL       HEXADECIMAL     DESCRIPTION
 8256932       0x7DFDA4        JFFS2 filesystem, little endian
 (recursive extraction ommitted)
 ```
-After a quick look around I did not find any scripts or references to running/reading anything from the mmc card, that is in order to get it to execute a command/script and gain access.
-I also did not see any mention of telnetd for me to run but I was happy to see an unemcrypted cramfs partition, which included a startup script and the main doorbell/camera application itself.
+After a quick look around I did not find any scripts or references to running/reading anything from the mmc card, that is, in order to get it to execute a command/script and gain access.
+I also did not see any mention of telnetd for me to run but I was happy to see an unencrypted cramfs partition, which included a startup script and the main doorbell/camera application itself.
 
 So the next step is to try to gain remote access, the initrun.sh script in the cramfs partition seems like the perfect place, so I modified it (see initrun.sh in github) and prepared my own firmware file, after determining the parameters for the cramfs (by reviewing the original one):
 ```
@@ -239,8 +239,8 @@ BusyBox v1.26.2 (2019-11-03 17:33:40 PST) built-in shell (ash)
 ```
 
 ##### Customization
-The objective with the process above was not to expose vulnerabilities or make it possible to 'hack' cameras, in fact the process above required me to physically access to the flash chip of the camera -- the whole point is to be able to customize the device to my specific needs, specifically to store/copy the video files on my NFS share.
-With root access, the first thing to do is to secure any remote access to the camera so that it can't be hacked with known username/password combinations, so I went ahead and edited /etc/passwd to have username and passwords (hash) only known to me.
+The objective with the process above was not to expose vulnerabilities or make it possible to 'hack' cameras, in fact the process above required me to physically access the flash chip of the camera -- the whole point is to be able to customize the device to my specific needs, specifically to store/copy the video files on my NFS share.
+With root access, the first thing to do is to secure any remote access to the camera so that it can't be hacked with known username/password combinations, so I went ahead and edited /etc/passwd to have a username and password (hash) only known to me.
 Unlike other cameras I have seen in the market this one actually uses a read-write memory mount which allows us to just modify and copy files to the built-in memory but those changes are lost on reboot (so my script has to re-apply them on every boot), no big deal.
 Once I verified my new telnet user/pass worked I went ahead and changed the passwordless telnet acces for a standard (password protected) telnet on my script.
 
@@ -253,9 +253,9 @@ The silver lining is that I already needed the mmc card to bootstrap my script a
 So how can I backup the SD card videos to my NAS? The simplest solution is usually the best: run httpd (from same busybox in mmc card) with a user/password so I can browse/download the files from a script on a raspberry pi I already use for automation around the house.
 That's where the httpd.conf, index.html and cgi-bin/main.cgi come in (credit to https://github.com/HeGanjie/busybox-httpd-directory-listing). I still have to work a little on the cron script that downloads the files but I've done it before and will post it when it's done.
 
-Now last the hard part... get remote viewing of the doorbell/camera.
+Now to the hard part... get remote viewing of the doorbell/camera.
 
-I had already started looking at ppsapp with ghidra looking for any potential exploits to enable telnet and even found a URL that runs a command to toggle telnet access (but as previously said telnetd is not in the image), so I opened it up looking at the RTSP related code used for chrome/ecoshow and found the code that initializes the camera buffers:
+I had already started looking at ppsapp with ghidra looking for any potential exploits to enable telnet and even found a URL that runs a command to toggle telnet access (but as previously said telnetd is not in the image), so I opened it up looking at the RTSP related code used for chromecast/ecoshow and found the code that initializes the camera buffers (and named them):
 
 ![ghidra](https://raw.githubusercontent.com/guino/BazzDoorbell/master/img/ghidra.jpg)
 
@@ -268,10 +268,10 @@ This means I'd have to copy the full buffer (1.2Mb for 1080P) which I am not sur
 If/when I do complete the streamer application I intend to post it on here.
 
 For now what I have done is come up with an alternate solution:
-I tracked down the address in the ppsapp which stores the buffer address the JPEG encoding of the camera feed in real time (used for screenshots/alerts and such), so I wrote a snap.cgi script (which is in github) which does the following:
-1-Finds the process ID for the running ppsapp
-2-Reads the buffer address from the ppsapp memory
-3-Reads the JPG buffer itself and sends it out as a response
+I tracked down the address in the ppsapp which stores the buffer address for the JPEG encoding of the camera feed in real time (used for screenshots/alerts and such), so I wrote a snap.cgi script (which is in github) which does the following:
+* Finds the process ID for the running ppsapp
+* Reads the buffer address from the ppsapp memory
+* Reads the JPG buffer itself and sends it out as a response
 
 The result is I am able to get a 'snapshot' URL of the camera feed under /cgi-bin/snap.cgi:
 
