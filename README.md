@@ -69,7 +69,7 @@ PPS:Jul 22 2019 00:22:28 meari_c5    0
 please input password::
 ```
 That doesn't look like u-boot, but anyway I tried different passwords without success and after searching found someone also looking for a way around it (https://github.com/DanTLehman/orion_sc008ha).
-I did play a little bit with it and that ppsMmcTool.txt file (see https://github.com/DanTLehman/orion_sc008ha/issues/1) but figured it was time to get more serious... time to pull out the programmer.
+I did play a little bit with it and that ppsMmcTool.txt file (see https://github.com/DanTLehman/orion_sc008ha/issues/1) but figured it was time to get more serious... time to pull out the programmer (available for around $15 just about everywhere):
 
 ![Programmer](https://images-na.ssl-images-amazon.com/images/I/41xB3WRorzL._AC_SY355_.jpg)
 
@@ -262,10 +262,11 @@ I had already started looking at ppsapp with ghidra looking for any potential ex
 From the ppsapp code it looks like the feed to outside devices may be encrypted and I didn't want to go down that route since I had a ready-source of unencrypted data in the memory of the applicatuon.
 
 I downloaded the armv7l toolchain for uclibc and wrote a 'streamer' application which would read the video from the circular buffer in ppsapp, monitor it and stream out any new data which works for the most part.
-The problem with the streamer application is that I didn't want it to use a lot of memory so I made a smaller buffer to parse the data from the ppsapp buffer and monitor/stream it that way but because of the nature of the updates it seems I am always reading data while it's being updated in memory (which corrupts the stream).
+I have added the streamer code attempts I made to github, and the most current version successfully makes files (just redirect its output to a file) which can be properly played in VLC, HOWEVER: it seems that without the RTP/RTSP encapsulation the playback cuts off every few seconds (despite a file with the same exact data playing correctly). I assume this has to do with the timing of the NAL units or it may require that each frame be transmitted in the same 'chunk' of data (which I didn't do). Nevertheless see the 'final update' section at the bottom for full solution.
+~~The problem with the streamer application is that I didn't want it to use a lot of memory so I made a smaller buffer to parse the data from the ppsapp buffer and monitor/stream it that way but because of the nature of the updates it seems I am always reading data while it's being updated in memory (which corrupts the stream).
 With that the only 'good' solution would be to read the ppsapp circular buffer in one-shot (as quick as possible) to minimize the chances of it happening while the buffer is being updated (minimizing the chances of it being corrupt).
 This means I'd have to copy the full buffer (1.2Mb for 1080P) which I am not sure is worth the cost. I may end up doing it and using the SD buffer (400Kb) which would be ok.
-If/when I do complete the streamer application I intend to post it on here.
+If/when I do complete the streamer application I intend to post it on here.~~
 
 For now what I have done is come up with an alternate solution:
 I tracked down the address in the ppsapp which stores the buffer address for the JPEG encoding of the camera feed in real time (used for screenshots/alerts and such), so I wrote a snap.cgi script (which is in github) which does the following:
@@ -277,7 +278,7 @@ The result is I am able to get a 'snapshot' URL of the camera feed under /cgi-bi
 
 ![snapshot](https://raw.githubusercontent.com/guino/BazzDoorbell/master/img/snap-cgi.png)
 
-It is a low resolution snapshot but it definitely works for alerts/previews/etc (plent for my ios app, domoticz etc which crunch down a bunch of camera images together).
+It is a low resolution snapshot but it definitely works for alerts/previews/etc (plenty for my ios app, domoticz etc which crunch down a bunch of camera images together).
 
 Last (for now) I also put together a 'mjpeg' stream (mjpeg.cgi in github), which basically does the same as the snap.cgi but in a loop (with the proper headers) so that I can actually see a 'moving feed' of the camera from app/browser/etc.
 
@@ -285,4 +286,9 @@ I will likely still work on the 'streamer' application using a full buffer -- it
 
 I hope the above helps someone in a similar situation and if by any chance you get to the point where you have access to the firmware, feel free to use the contents of this page (including the ppsapp wchich will work with the scripts provided).
 
+##### Final update
 
+I didn't want to spend more time (than I already have) coding a solution to view a high-resolution stream from the doorbell camera so I went into the ppsapp code in ghidra again to see if I could find the code that streams the video to their app, I was thinking of just disabling the encryption so I would be able to view it directly, but in that review process I noticed that the "echo show" streaming support did not seem to be encrypted and in fact it seemed like that feature was just disabled (by hard-coded setting), so without hesitation I went ahead and modified the code/file to always start the "echo show" support. I expected I would have to make a few more changes to get it to work but no: a single byte change in the file and it baiscally started up a RTSP server on port 8554 (rtsp://<ip>:8554) with VLC and any other streaming app working perfectly **in HD with audio**.
+I have made the 'rtsp' version of ppsapp available in the project so you can use it in your device. I am not concerned in 'protecting' the stream with a user/password as it is inside my local/internal network (firewalled) and it's a camera the faces outside the house, so use it at your own risk. If I am ever concerned I can just add a cgi script in httpd that enables/disables access to the RTSP stream (with iptables or even just stopping the rtsp version of ppsapp and starting the non-rtsp version).
+
+With the video recordings being saved (downloaded) onto my NFS share and having the ability to to view the live feed in HD (RTSP) and in SD (MJPEG) from any standard application I call this a resounding success and don't have any more future plans for this project.
