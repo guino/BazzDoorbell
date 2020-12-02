@@ -251,7 +251,7 @@ The only way I could get NFS to work here is to make my own kernel with NFS supp
 The silver lining is that I already needed the mmc card to bootstrap my script anyway, so that saves me time from researching a way to run my script over network and such.
 
 So how can I backup the SD card videos to my NAS? The simplest solution is usually the best: run httpd (from same busybox in mmc card) with a user/password so I can browse/download the files from a script on a raspberry pi I already use for automation around the house.
-That's where the httpd.conf, index.html and cgi-bin/main.cgi come in (credit to https://github.com/HeGanjie/busybox-httpd-directory-listing). I still have to work a little on the cron script that downloads the files but I've done it before and will post it when it's done.
+That's where the httpd.conf, index.html and cgi-bin/main.cgi come in (credit to https://github.com/HeGanjie/busybox-httpd-directory-listing). I have included the the cron script that downloads the files from the doorbell to my NAS/NFS share, you just have to adjust the parameters/paths to use it with your device (NFS/share/script paths, user, password, IP and serial).
 
 Now to the hard part... get remote viewing of the doorbell/camera.
 
