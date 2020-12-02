@@ -60,9 +60,9 @@ for f in $LST; do
 		# If remote size is bigger, update local file
 		if [ "$RSIZE" -gt "$LSIZE" ]; then
 			echo -n " updating... " >> $LOG
-        	curl -m 60 -s "$URL${f:10}" > $N
-        	touch -m -t $TODAY${N:0:2}${N:2:2}.${N:4:2} $N
-        	echo "done." >> $LOG
+			curl -m 60 -s "$URL${f:10}" > $N
+			touch -m -t $TODAY${N:0:2}${N:2:2}.${N:4:2} $N
+			echo "done." >> $LOG
 		else
 			# Log we already had it (we found the first one that we already have, so we're done)
 			echo " already copied." >> $LOG
