@@ -284,7 +284,7 @@ Last (for now) I also put together a 'mjpeg' stream (mjpeg.cgi in github), which
 
 I will likely still work on the 'streamer' application using a full buffer -- it's more of a challenge right now than a 'need'.
 
-I hope the above helps someone in a similar situation and if by any chance you get to the point where you have access to the firmware, feel free to use the contents of this page (PLEASE READ https://github.com/guino/BazzDoorbell/issues/2#issuecomment-739464775 ~~including the ppsapp wchich will work with the scripts provided~~).
+I hope the above helps someone in a similar situation and if by any chance you get to the point where you have access to the firmware, feel free to use the contents of this page (PLEASE READ https://github.com/guino/BazzDoorbell/issues/2#issuecomment-739464775 ~~including the ppsapp wchich will work with the scripts provided~~). Feel free to look for a ppsapp patch for your version here: https://github.com/guino/ppsapp-rtsp/issues/1
 
 ##### Final update
 
