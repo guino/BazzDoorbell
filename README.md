@@ -284,7 +284,7 @@ Last (for now) I also put together a 'mjpeg' stream (mjpeg.cgi in github), which
 
 I will likely still work on the 'streamer' application using a full buffer -- it's more of a challenge right now than a 'need'.
 
-I hope the above helps someone in a similar situation and if by any chance you get to the point where you have access to the firmware, feel free to use the contents of this page (including the ppsapp wchich will work with the scripts provided).
+I hope the above helps someone in a similar situation and if by any chance you get to the point where you have access to the firmware, feel free to use the contents of this page (PLEASE READ https://github.com/guino/BazzDoorbell/issues/2#issuecomment-739464775 ~~including the ppsapp wchich will work with the scripts provided~~).
 
 ##### Final update
 
@@ -292,3 +292,9 @@ I didn't want to spend more time (than I already have) coding a solution to view
 I have made the 'rtsp' version of ppsapp available in the project so you can use it in your device. I am not concerned in 'protecting' the stream with a user/password as it is inside my local/internal network (firewalled) and it's a camera the faces outside the house, so use it at your own risk. If I am ever concerned I can just add a cgi script in httpd that enables/disables access to the RTSP stream (with iptables or even just stopping the rtsp version of ppsapp and starting the non-rtsp version).
 
 With the video recordings being saved (downloaded) onto my NFS share and having the ability to to view the live feed in HD (RTSP) and in SD (MJPEG) from any standard application I call this a resounding success and don't have any more future plans for this project.
+
+##### SD Option
+
+See this link for a No-Programmer, No-UART, No-Open SD card-only solution:
+https://github.com/guino/BazzDoorbell/issues/2
+
