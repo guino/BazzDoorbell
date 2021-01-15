@@ -37,7 +37,6 @@ int main( int ac, char *av[] )
 	ulong jpegptraddr = strtoul(av[2], 0, 16);
 	ulong jpegaddr = 0;
 	ulong len = strtoul(av[3], 0, 0);
-	sprintf(mjpeglen, "%d\r\n\r\n", len);
 
 	// Read print jpeg address
 	lseek(fd, jpegptraddr, SEEK_SET);
@@ -88,21 +87,32 @@ int main( int ac, char *av[] )
 
 		// If out buffers match, send out data
 		if(match) {
-			// Header based on type
+			int jlen = len;
+			// Based on type
 			if(mjpeg) {
+				// Find end of JPEG
+				for(jlen=0;jlen<len;jlen++) {
+					if( (buff[jlen]==0xFF) && (buff[jlen+1]==0xD9) )
+						break;
+				}
+				if(jlen+2<len)
+					jlen+=2;
+				// Write separator
 				write(STDOUT_FILENO, mjpegsep, strlen(mjpegsep));
+				// Prepare and write size
+				sprintf(mjpeglen, "%d\r\n\r\n", jlen);
 				write(STDOUT_FILENO, mjpeglen, strlen(mjpeglen));
 			} else {
 				write(STDOUT_FILENO, snaphdr, strlen(snaphdr));
 			}
 			// JPEG buffer
-			outlen = write(STDOUT_FILENO, buff, len);
+			outlen = write(STDOUT_FILENO, buff, jlen);
 		}
 
 		// Prevents re-run of snap/mjpeg too fast
 		usleep(100000);
 
-	} while(mjpeg==1 && outlen==len);
+	} while(mjpeg==1 && outlen>0);
 
 	fprintf(stderr, "Stdout closed\n");
 	free(buff);
