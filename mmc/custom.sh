@@ -9,6 +9,7 @@ if [ ! -e /tmp/customrun ]; then
   kill $PPSID
   #/mnt/mmc01/set record_enable 0
   #/mnt/mmc01/set enable_event_record 1
+  #/mnt/mmc01/set onvif_enable 1
   /mnt/mmc01/ppsapp &
  fi
 fi
