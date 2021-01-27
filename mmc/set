@@ -1,0 +1,11 @@
+#/bin/sh
+
+SNAME=$1
+NEW=$2
+OLD=$(grep $SNAME /home/cfg/tuya_config.json | awk '{sub(",","",$2); print $2}')
+
+if [ "$NEW" == "$OLD" ]; then
+ echo "$SNAME is already set to $2"
+else
+ sed -i 's/"'$SNAME'":\t'$OLD'/"'$SNAME'":\t'$NEW'/g' /home/cfg/tuya_config.json
+fi
