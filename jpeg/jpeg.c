@@ -7,10 +7,10 @@
 int fd;							// File descriptor
 char *buff;						// jpeg buffer
 
-char *snaphdr = "Content-type: image/jpeg\r\n\r\n";
+char *snaphdr = "Content-type: image/jpeg\r\nFile-Name: pic.jpg\r\nContent-Length: ";
 
 char *mjpeghdr = "Cache-Control: no-cache\r\nConnection: Keep-Alive\r\nContent-Type: multipart/x-mixed-replace;boundary=------guinomjpegboundary\r\n\r\n";
-char *mjpegsep = "------guinomjpegboundary\r\nContent-Type: image/jpeg\r\nFile-Name: picture\r\nContent-Length: ";
+char *mjpegsep = "------guinomjpegboundary\r\nContent-Type: image/jpeg\r\nFile-Name: pic.jpg\r\nContent-Length: ";
 char mjpeglen[12];
 
 int main( int ac, char *av[] )
@@ -87,24 +87,24 @@ int main( int ac, char *av[] )
 
 		// If out buffers match, send out data
 		if(match) {
-			int jlen = len;
+			int jlen = 0;
+			// Find end of JPEG
+			for(jlen=0;jlen<len;jlen++) {
+				if( (buff[jlen]==0xFF) && (buff[jlen+1]==0xD9) )
+					break;
+			}
+			if(jlen+2<len)
+				jlen+=2;
 			// Based on type
 			if(mjpeg) {
-				// Find end of JPEG
-				for(jlen=0;jlen<len;jlen++) {
-					if( (buff[jlen]==0xFF) && (buff[jlen+1]==0xD9) )
-						break;
-				}
-				if(jlen+2<len)
-					jlen+=2;
 				// Write separator
 				write(STDOUT_FILENO, mjpegsep, strlen(mjpegsep));
-				// Prepare and write size
-				sprintf(mjpeglen, "%d\r\n\r\n", jlen);
-				write(STDOUT_FILENO, mjpeglen, strlen(mjpeglen));
 			} else {
 				write(STDOUT_FILENO, snaphdr, strlen(snaphdr));
 			}
+			// Prepare and write size
+			sprintf(mjpeglen, "%d\r\n\r\n", jlen);
+			write(STDOUT_FILENO, mjpeglen, strlen(mjpeglen));
 			// JPEG buffer
 			outlen = write(STDOUT_FILENO, buff, jlen);
 		}
