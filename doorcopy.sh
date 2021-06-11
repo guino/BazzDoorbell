@@ -32,7 +32,7 @@ DD=${TODAY:6:2}
 cd /mnt/3tb/nvr-Door
 # If it doesn't: copy/check yesterday's files one last time
 if [ ! -e $TODAY ]; then
-	/jffs/doorcopy.sh `date --date="yesterday" +%Y%m%d`
+	/jffs/doorcopy.sh `date --date="$TODAY -1 day" +%Y%m%d`
 fi
 
 # Simplify paths
