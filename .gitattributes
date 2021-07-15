@@ -3,3 +3,4 @@ mmc/busybox filter=lfs diff=lfs merge=lfs -text
 1811072025_XMC-XM25QH64AHIG_C328461.pdf filter=lfs diff=lfs merge=lfs -text
 ppsapp-rtsp filter=lfs diff=lfs merge=lfs -text
 streamer/streamer-arm filter=lfs diff=lfs merge=lfs -text
+mmc/dropbearmulti filter=lfs diff=lfs merge=lfs -text
