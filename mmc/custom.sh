@@ -12,6 +12,7 @@ if [ ! -e /tmp/customrun ]; then
   #/mnt/mmc01/set onvif_enable 1
   /mnt/mmc01/ppsapp &
  fi
+ #/mnt/mmc01/offline.sh &
 fi
 if [ ! -e /tmp/cleanup`date +%Y%m%d` ]; then
  rm -rf /tmp/cleanup*
